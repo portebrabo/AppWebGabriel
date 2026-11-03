@@ -87,6 +87,21 @@ public class ProcessoDAO
         comando.ExecuteNonQuery();
     }
 
+    public void Excluir(int id)
+    {
+        using var con = _conexao.GetConnection();
+        const string sql = "DELETE FROM processos WHERE id_pro = @id";
+        using var comando = con.CreateCommand();
+        comando.CommandText = sql;
+
+        var param = comando.CreateParameter();
+        param.ParameterName = "@id";
+        param.Value = id;
+        comando.Parameters.Add(param);
+
+        comando.ExecuteNonQuery();
+    }
+
     private void AdicionarParametros(IDbCommand comando, Processo processo)
     {
         var pNumero = comando.CreateParameter();
