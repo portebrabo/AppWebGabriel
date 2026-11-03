@@ -1,0 +1,116 @@
+﻿@page "/processos/cadastro"
+@page "/processos/editar/{Id:int}"
+@using AppWebGabriel.Model
+@rendermode InteractiveServer
+@inject AppWebGabriel.DAO.ProcessoDAO dao
+@inject NavigationManager NavigationManager
+
+<PageTitle>@Titulo - Sistema de Controle de Processos</PageTitle>
+
+<h3>@Titulo</h3>
+
+<EditForm Model="processo" OnValidSubmit="Salvar">
+    <DataAnnotationsValidator />
+
+    @if (Id.HasValue && !processoEncontrado)
+    {
+        <div class="alert alert-warning" role="alert">
+            Processo não encontrado.
+            <a href="/processos" class="alert-link">Voltar para a lista</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="numero" class="form-label">Número</label>
+                <InputText id="numero" class="form-control" @bind-Value="processo.Numero" />
+                <ValidationMessage For="() => processo.Numero" />
+            </div>
+
+            <div class="col-md-4">
+                <label for="data" class="form-label">Data</label>
+                <InputDate id="data" class="form-control" @bind-Value="processo.Data" />
+                <ValidationMessage For="() => processo.Data" />
+            </div>
+
+            <div class="col-md-4">
+                <label for="situacao" class="form-label">Situação</label>
+                <InputSelect id="situacao" class="form-select" @bind-Value="processo.Situacao">
+                    <option value="Aberto">Aberto</option>
+                    <option value="Em analise">Em análise</option>
+                    <option value="Pendente">Pendente</option>
+                    <option value="Concluido">Concluído</option>
+                    <option value="Arquivado">Arquivado</option>
+                </InputSelect>
+                <ValidationMessage For="() => processo.Situacao" />
+            </div>
+
+            <div class="col-md-12">
+                <label for="interessado" class="form-label">Interessado</label>
+                <InputText id="interessado" class="form-control" @bind-Value="processo.Interessado" />
+                <ValidationMessage For="() => processo.Interessado" />
+            </div>
+
+            <div class="col-md-12">
+                <label for="assunto" class="form-label">Assunto</label>
+                <InputText id="assunto" class="form-control" @bind-Value="processo.Assunto" />
+                <ValidationMessage For="() => processo.Assunto" />
+            </div>
+
+            <div class="col-md-12">
+                <label for="descricao" class="form-label">Descrição</label>
+                <InputTextArea id="descricao" class="form-control" @bind-Value="processo.Descricao" />
+                <ValidationMessage For="() => processo.Descricao" />
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> @(Id.HasValue ? "Atualizar" : "Salvar")
+                </button>
+                <a href="/processos" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </div>
+    }
+</EditForm>
+
+@code {
+    private Processo processo = new();
+    private bool processoEncontrado = true;
+
+    [Parameter]
+    public int? Id { get; set; }
+
+    private string Titulo => Id.HasValue ? "Editar Processo" : "Cadastro de Processo";
+
+    protected override void OnParametersSet()
+    {
+        if (!Id.HasValue)
+        {
+            processo = new Processo();
+            processoEncontrado = true;
+            return;
+        }
+
+        var processoCarregado = dao.ObterPorId(Id.Value);
+        processoEncontrado = processoCarregado is not null;
+
+        if (processoCarregado is not null)
+        {
+            processo = processoCarregado;
+        }
+    }
+
+    private void Salvar()
+    {
+        if (Id.HasValue)
+        {
+            dao.Atualizar(processo);
+        }
+        else
+        {
+            dao.Inserir(processo);
+        }
+        NavigationManager.NavigateTo("/processos");
+    }
+}
